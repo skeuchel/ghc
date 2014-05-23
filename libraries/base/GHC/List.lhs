@@ -296,10 +296,22 @@ cycle xs                = xs' where xs' = xs ++ xs'
 --
 
 takeWhile               :: (a -> Bool) -> [a] -> [a]
+{-# NOINLINE [1] takeWhile #-} -- We want the RULE to fire first.
 takeWhile _ []          =  []
 takeWhile p (x:xs)
             | p x       =  x : takeWhile p xs
             | otherwise =  []
+
+takeWhileFB p c n x xs = if p x then x `c` xs else n
+{-# INLINE [0] takeWhileFB #-}
+
+{-# RULES
+"takeWhile/fuse" [~1]
+  forall p xs . takeWhile p xs = build $ \c n -> foldr (takeWhileFB p c n) n xs
+"takeWhile/back" [1]
+  forall p xs . foldr (takeWhileFB p (:) []) [] xs = takeWhile p xs
+ #-}
+
 
 -- | 'dropWhile' @p xs@ returns the suffix remaining after 'takeWhile' @p xs@:
 --
