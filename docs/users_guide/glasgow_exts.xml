@@ -11016,7 +11016,7 @@ The following are good producers:
 
 <listitem>
 <para>
-<function>take</function>, <function>filter</function>
+<function>take</function>, <function>takeWhile</function>, <function>filter</function>
 </para>
 </listitem>
 <listitem>
@@ -11073,7 +11073,7 @@ The following are good consumers:
 <listitem>
 
 <para>
-<function>take</function>, <function>filter</function>
+<function>take</function>, <function>takeWhile</function>, <function>filter</function>
 </para>
 </listitem>
 <listitem>
