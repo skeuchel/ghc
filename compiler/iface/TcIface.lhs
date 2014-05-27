@@ -586,16 +586,32 @@ tc_iface_decl _ _ (IfaceAxiom { ifName = ax_occ, ifTyCon = tc
 tc_iface_decl _ _ (IfacePatSyn{ ifName = occ_name
                               , ifPatMatcher = matcher_name
                               , ifPatWrapper = wrapper_name
-                              , ifPatIsInfix = is_infix })
+                              , ifPatIsInfix = is_infix
+                              , ifPatUnivTvs = univ_tvs
+                              , ifPatExTvs = ex_tvs
+                              , ifPatProvCtxt = prov_ctxt
+                              , ifPatReqCtxt = req_ctxt
+                              , ifPatArgs = args
+                              , ifPatTy = pat_ty })
   = do { name <- lookupIfaceTop occ_name
+       ; traceIf (ptext (sLit "tc_iface_decl") <+> ppr name)
        ; matcher <- tcExt "Matcher" matcher_name
        ; wrapper <- case wrapper_name of
                         Nothing -> return Nothing
                         Just wn -> do { wid <- tcExt "Wrapper" wn
                                       ; return (Just wid) }
-       ; return $ AConLike . PatSynCon $
-             buildPatSyn name is_infix matcher wrapper }
+       ; bindIfaceTyVars univ_tvs $ \univ_tvs -> do
+       { bindIfaceTyVars ex_tvs $ \ex_tvs -> do
+       { patsyn <- forkM (mk_doc name) $
+             do { prov_theta <- tcIfaceCtxt prov_ctxt
+                ; req_theta  <- tcIfaceCtxt req_ctxt
+                ; pat_ty     <- tcIfaceType pat_ty
+                ; arg_tys    <- mapM tcIfaceType args
+                ; return $ buildPatSyn name is_infix matcher wrapper
+                                       arg_tys univ_tvs ex_tvs prov_theta req_theta pat_ty }
+       ; return $ AConLike . PatSynCon $ patsyn }}}
   where
+     mk_doc n = ptext (sLit "Pattern synonym") <+> ppr n
      tcExt s name = forkM (ptext (sLit s) <+> ppr name) $ tcIfaceExtId name
 
 tc_ax_branches :: TyCon -> [IfaceAxBranch] -> IfL [CoAxBranch]

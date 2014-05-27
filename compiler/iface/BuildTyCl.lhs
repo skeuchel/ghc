@@ -186,19 +186,25 @@ mkDataConStupidTheta tycon arg_tys univ_tvs
 ------------------------------------------------------
 buildPatSyn :: Name -> Bool
             -> Id -> Maybe Id
+            -> [Type]
+            -> [TyVar] -> [TyVar]     -- Univ and ext
+            -> ThetaType -> ThetaType -- Prov and req
+            -> Type                  -- Result type
             -> PatSyn
 buildPatSyn src_name declared_infix matcher wrapper
+            args univ_tvs ex_tvs prov_theta req_theta pat_ty
   = mkPatSyn src_name declared_infix
              args
-             univ_tvs ex_tvs prov_theta req_theta
+             univ_tvs ex_tvs
+             prov_theta req_theta
              pat_ty
              matcher
              wrapper
   where
-    ((_:univ_tvs), req_theta, tau) = tcSplitSigmaTy $ idType matcher
-    ([pat_ty, cont_sigma, _], _) = tcSplitFunTys tau
-    (ex_tvs, prov_theta, cont_tau) = tcSplitSigmaTy cont_sigma
-    (args, _) = tcSplitFunTys cont_tau
+    ((_:_univ_tvs'), _req_theta', tau) = tcSplitSigmaTy $ idType matcher
+    ([_pat_ty', cont_sigma, _], _) = tcSplitFunTys tau
+    (_ex_tvs', _prov_theta', cont_tau) = tcSplitSigmaTy cont_sigma
+    (_args', _) = tcSplitFunTys cont_tau
 
 \end{code}
 
