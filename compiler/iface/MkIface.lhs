@@ -1493,11 +1493,9 @@ patSynToIfaceDecl ps
                 , ifPatMatcher    = matcher
                 , ifPatWrapper    = wrapper
                 , ifPatIsInfix    = patSynIsInfix ps
-                , ifPatArgs       = args
                 }
   where
-    args = map (occNameFS . getOccName) $ patSynArgs ps
-
+    -- args = map toIfaceType $ patSynArgs ps
     matcher = idName (patSynMatcher ps)
     wrapper = fmap idName (patSynWrapper ps)
 

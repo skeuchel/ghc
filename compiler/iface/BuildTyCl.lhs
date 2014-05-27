@@ -186,9 +186,8 @@ mkDataConStupidTheta tycon arg_tys univ_tvs
 ------------------------------------------------------
 buildPatSyn :: Name -> Bool
             -> Id -> Maybe Id
-            -> [Name]
             -> PatSyn
-buildPatSyn src_name declared_infix matcher wrapper arg_names
+buildPatSyn src_name declared_infix matcher wrapper
   = mkPatSyn src_name declared_infix
              args
              univ_tvs ex_tvs prov_theta req_theta
@@ -199,9 +198,7 @@ buildPatSyn src_name declared_infix matcher wrapper arg_names
     ((_:univ_tvs), req_theta, tau) = tcSplitSigmaTy $ idType matcher
     ([pat_ty, cont_sigma, _], _) = tcSplitFunTys tau
     (ex_tvs, prov_theta, cont_tau) = tcSplitSigmaTy cont_sigma
-    (arg_tys, _) = tcSplitFunTys cont_tau
-    args = ASSERT( length arg_names == length arg_tys )
-           zipWith mkLocalId arg_names arg_tys
+    (args, _) = tcSplitFunTys cont_tau
 
 \end{code}
 

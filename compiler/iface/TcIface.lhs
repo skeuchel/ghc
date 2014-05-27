@@ -586,17 +586,15 @@ tc_iface_decl _ _ (IfaceAxiom { ifName = ax_occ, ifTyCon = tc
 tc_iface_decl _ _ (IfacePatSyn{ ifName = occ_name
                               , ifPatMatcher = matcher_name
                               , ifPatWrapper = wrapper_name
-                              , ifPatIsInfix = is_infix
-                              , ifPatArgs = args })
+                              , ifPatIsInfix = is_infix })
   = do { name <- lookupIfaceTop occ_name
        ; matcher <- tcExt "Matcher" matcher_name
        ; wrapper <- case wrapper_name of
                         Nothing -> return Nothing
                         Just wn -> do { wid <- tcExt "Wrapper" wn
                                       ; return (Just wid) }
-       ; argNames <- mapM (newIfaceName . mkVarOccFS) args
        ; return $ AConLike . PatSynCon $
-             buildPatSyn name is_infix matcher wrapper argNames }
+             buildPatSyn name is_infix matcher wrapper }
   where
      tcExt s name = forkM (ptext (sLit s) <+> ppr name) $ tcIfaceExtId name
 

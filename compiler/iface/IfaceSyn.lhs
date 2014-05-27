@@ -122,8 +122,7 @@ data IfaceDecl
   | IfacePatSyn { ifName          :: OccName,           -- Name of the pattern synonym
                   ifPatIsInfix    :: Bool,
                   ifPatMatcher    :: IfExtName,
-                  ifPatWrapper    :: Maybe IfExtName,
-                  ifPatArgs       :: [IfLclName] }
+                  ifPatWrapper    :: Maybe IfExtName }
 
 -- A bit of magic going on here: there's no need to store the OccName
 -- for a decl on the disk, since we can infer the namespace from the
@@ -182,13 +181,12 @@ instance Binary IfaceDecl where
         put_ bh a3
         put_ bh a4
 
-    put_ bh (IfacePatSyn name a2 a3 a4 a5) = do
+    put_ bh (IfacePatSyn name a2 a3 a4) = do
         putByte bh 6
         put_ bh (occNameFS name)
         put_ bh a2
         put_ bh a3
         put_ bh a4
-        put_ bh a5
 
     get bh = do
         h <- getByte bh
@@ -240,9 +238,8 @@ instance Binary IfaceDecl where
                     a2 <- get bh
                     a3 <- get bh
                     a4 <- get bh
-                    a5 <- get bh
                     occ <- return $! mkOccNameFS dataName a1
-                    return (IfacePatSyn occ a2 a3 a4 a5)
+                    return (IfacePatSyn occ a2 a3 a4)
             _ -> panic (unwords ["Unknown IfaceDecl tag:", show h])
 
 data IfaceSynTyConRhs

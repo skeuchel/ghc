@@ -13,7 +13,7 @@ module PatSyn (
 
         -- ** Type deconstruction
         patSynId, patSynType, patSynArity, patSynIsInfix,
-        patSynArgs, patSynArgTys, patSynTyDetails,
+        patSynArgs, patSynTyDetails,
         patSynWrapper, patSynMatcher,
         patSynExTyVars, patSynSig, patSynInstArgTys
     ) where
@@ -59,7 +59,7 @@ with the following typeclass constraints:
 
 In this case, the fields of MkPatSyn will be set as follows:
 
-  psArgs       = [x :: b]
+  psArgs       = [b]
   psArity      = 1
   psInfix      = False
 
@@ -117,7 +117,7 @@ data PatSyn
         psId          :: Id,
         psUnique      :: Unique,      -- Cached from Name
 
-        psArgs        :: [Var],
+        psArgs        :: [Type],
         psArity       :: Arity,       -- == length psArgs
         psInfix       :: Bool,        -- True <=> declared infix
 
@@ -194,7 +194,7 @@ instance Data.Data PatSyn where
 -- | Build a new pattern synonym
 mkPatSyn :: Name
          -> Bool       -- ^ Is the pattern synonym declared infix?
-         -> [Var]      -- ^ Original arguments
+         -> [Type]     -- ^ Original arguments
          -> [TyVar]    -- ^ Universially-quantified type variables
          -> [TyVar]    -- ^ Existentially-quantified type variables
          -> ThetaType  -- ^ Wanted dicts
@@ -220,7 +220,7 @@ mkPatSyn name declared_infix orig_args
   where
     pat_ty = mkSigmaTy univ_tvs req_theta $
              mkSigmaTy ex_tvs prov_theta $
-             mkFunTys (map varType orig_args) orig_res_ty
+             mkFunTys orig_args orig_res_ty
     id = mkLocalId name pat_ty
 \end{code}
 
@@ -240,14 +240,11 @@ patSynIsInfix = psInfix
 patSynArity :: PatSyn -> Arity
 patSynArity = psArity
 
-patSynArgs :: PatSyn -> [Var]
+patSynArgs :: PatSyn -> [Type]
 patSynArgs = psArgs
 
-patSynArgTys :: PatSyn -> [Type]
-patSynArgTys = map varType . patSynArgs
-
 patSynTyDetails :: PatSyn -> HsPatSynDetails Type
-patSynTyDetails ps = case (patSynIsInfix ps, patSynArgTys ps) of
+patSynTyDetails ps = case (patSynIsInfix ps, patSynArgs ps) of
     (True, [left, right]) -> InfixPatSyn left right
     (_, tys) -> PrefixPatSyn tys
 
@@ -269,9 +266,8 @@ patSynInstArgTys :: PatSyn -> [Type] -> [Type]
 patSynInstArgTys ps inst_tys
   = ASSERT2( length tyvars == length inst_tys
           , ptext (sLit "patSynInstArgTys") <+> ppr ps $$ ppr tyvars $$ ppr inst_tys )
-    map (substTyWith tyvars inst_tys) arg_tys
+    map (substTyWith tyvars inst_tys) (psArgs ps)
   where
     (univ_tvs, ex_tvs, _, _) = patSynSig ps
-    arg_tys = map varType (psArgs ps)
     tyvars = univ_tvs ++ ex_tvs
 \end{code}
