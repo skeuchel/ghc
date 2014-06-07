@@ -366,3 +366,14 @@ test('InlineCloneArrayAlloc',
       only_ways(['normal'])],
      compile_and_run,
      ['-O2'])
+
+test('T9132',
+     [ stats_num_field('bytes allocated',
+                       [ (wordsize(32), 37840, 10)
+                         # 2014-06-06:  37840 (x86/Linux)
+                       , (wordsize(64), 40992, 10)]),
+                         # previously, it was 1401120 bytes (amd64/OSX)
+                         # 2014-06-06:  40992 (amd64/OSX)
+       only_ways(['normal'])],
+     compile_and_run,
+     ['-O2'])

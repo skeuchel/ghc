@@ -302,14 +302,13 @@ takeWhile p (x:xs)
             | p x       =  x : takeWhile p xs
             | otherwise =  []
 
-takeWhileFB p c n x xs = if p x then x `c` xs else n
 {-# INLINE [0] takeWhileFB #-}
+takeWhileFB :: (a -> Bool) -> (a -> b -> b) -> b -> a -> b -> b
+takeWhileFB p c n x xs = if p x then x `c` xs else n
 
 {-# RULES
-"takeWhile/fuse" [~1]
-  forall p xs . takeWhile p xs = build $ \c n -> foldr (takeWhileFB p c n) n xs
-"takeWhile/back" [1]
-  forall p xs . foldr (takeWhileFB p (:) []) [] xs = takeWhile p xs
+"takeWhile"   [~1] forall p xs. takeWhile p xs = build (\c n -> foldr (takeWhileFB p c n) n xs)
+"takeWhileFB"  [1] forall p xs. foldr (takeWhileFB p (:) []) [] xs = takeWhile p xs
  #-}
 
 
